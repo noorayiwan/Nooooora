@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noora碎碎碎到掉渣的碎碎念</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(to right, #ff7eb3, #9b59b6);
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        header {
+            padding: 40px 0;
+        }
+        h1 {
+            font-size: 3em;
+            font-weight: 600;
+        }
+        .entry-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            width: 80%;
+            max-width: 600px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+        }
+        .input-field, .text-area {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 1.3em;
+            color: #333;
+            font-family: 'Poppins', sans-serif;
+        }
+        .input-field {
+            height: 40px;
+        }
+        .text-area {
+            height: 150px;
+            resize: none;
+        }
+        .file-input {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            background-color:linear-gradient(to right, #ff7eb3, #9b59b6);
+            cursor: pointer;
+            font-size: 2em;
+            display: inline-block;
+            outline: none;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .file-input:focus, .file-input:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .buttons-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .button {
+            padding: 15px 30px;
+            background-color: #7a3e8b;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.4em;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .button:hover {
+            background-color: #7a3e8b;
+        }
+        .deleted-record-btn {
+            margin: 10px 0;
+            padding: 10px;
+            background-color:rgba(255, 64, 129, 0);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 2em;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .deleted-record-btn:hover {
+            background-color:rgba(255, 255, 255, 0.2);
+        }
+        footer {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8em;
+            color: #ccc;
+        }
+    </style>
+    <!-- 引入 Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+</head>
+<body>
+
+<header>
+    <h1> Noora碎碎碎到掉渣的碎碎念 </h1>
+    <p>什么东西都随便记录吧，故事、情绪、音乐、电影🎬、书籍📚</p>
+</header>
+
+<div class="entry-container">
+    <h2>今天说点啥呢:</h2>
+    <input class="input-field" type="text" id="title" placeholder="Title不喜欢想标题" />
+    <textarea class="text-area" id="content" placeholder="看着点写吧...说也行..."></textarea>
+    
+    <div class="buttons-container">
+        <!-- Emoji buttons (✨ and 🧚‍♀️) -->
+        <label for="image" class="file-input">✨</label>
+        <input class="file-input" type="file" id="image" accept="image/*" style="display: none;" />
+        
+        <label for="video" class="file-input">🧚‍♀️</label>
+        <input class="file-input" type="file" id="video" accept="video/*" style="display: none;" />
+        
+        <!-- New button for deleted entries -->
+        <a href="deleted_entries.html">
+            <button class="deleted-record-btn">🗑️</button>
+        </a>
+    </div>
+
+    <button class="button" onclick="saveEntry()">一锤定音</button>
+</div>
+
+<div class="entries" id="entries">
+    <!-- 记录的内容会显示在这里 -->
+</div>
+
+<a href="index.html">
+    <button class="button">返回首页</button>
+</a>
+
+<footer>
+    <p>&copy; 2025 Noora. All Rights Reserved.</p>
+</footer>
+
+<script>
+    // ==================== Firebase 配置 ====================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDGckrealNS8bdVXOuJ5hA5efYHXKyVXDk",
+        authDomain: "yiwan-79475.firebaseapp.com",
+        projectId: "yiwan-79475",
+        storageBucket: "yiwan-79475.appspot.com",
+        messagingSenderId: "821154734829",
+        appId: "1:821154734829:web:3659314fa67d806185e2e4",
+        measurementId: "G-QXGX35ZHW2"
+    };
+
+    // 初始化 Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore(); // 获取 Firestore 实例
+
+    // ==================== 加载所有记录 ====================
+    async function loadEntries() {
+        const entriesContainer = document.getElementById("entries");
+        entriesContainer.innerHTML = ""; // 清空现有内容
+
+        // 从 Firestore 中获取所有记录
+        const querySnapshot = await db.collection("entries").get();
+        querySnapshot.forEach((doc) => {
+            const entry = doc.data(); // 获取单条记录的数据
+            const entryElement = document.createElement("div");
+            entryElement.classList.add("entry");
+
+            // 创建标题元素
+            const titleElement = document.createElement("h3");
+            titleElement.textContent = entry.title;
+
+            // 创建内容元素
+            const contentElement = document.createElement("p");
+            contentElement.textContent = entry.content;
+
+            // 创建时间戳元素
+            const timestampElement = document.createElement("p");
+            timestampElement.textContent = "时间: " + entry.timestamp;
+            timestampElement.style.fontSize = "0.9em";
+            timestampElement.style.color = "#ccc";
+
+            // 将元素添加到记录容器中
+            entryElement.appendChild(titleElement);
+            entryElement.appendChild(contentElement);
+            entryElement.appendChild(timestampElement);
+
+            // 如果有图片
+            if (entry.image) {
+                const imageElement = document.createElement("img");
+                imageElement.src = entry.image;
+                entryElement.appendChild(imageElement);
+            }
+
+            // 如果有视频
+            if (entry.video) {
+                const videoElement = document.createElement("video");
+                videoElement.src = entry.video;
+                videoElement.controls = true;
+                entryElement.appendChild(videoElement);
+            }
+
+            // 删除按钮
+            const deleteButton = document.createElement("button");
+            deleteButton.classList.add("delete-btn");
+            deleteButton.textContent = "🚮";
+            deleteButton.onclick = async function() {
+                await db.collection("entries").doc(doc.id).delete(); // 删除记录
+                loadEntries(); // 重新加载记录
+            };
+            entryElement.appendChild(deleteButton);
+
+            // 将记录添加到页面中
+            entriesContainer.appendChild(entryElement);
+        });
+    }
+
+    // ==================== 保存记录 ====================
+    async function saveEntry() {
+        const title = document.getElementById("title").value;
+        const content = document.getElementById("content").value;
+        const image = document.getElementById("image").files[0];
+        const video = document.getElementById("video").files[0];
+
+        // 检查输入是否为空
+        if (title === "" || content === "") {
+            alert("不写东西可什么也记录不下来，你不写我怎么知道你心里藏点什么");
+            return;
+        }
+
+        // 将记录保存到 Firestore
+        await db.collection("entries").add({
+            title: title,
+            content: content,
+            image: image ? URL.createObjectURL(image) : null,
+            video: video ? URL.createObjectURL(video) : null,
+            timestamp: new Date().toLocaleString() // 添加时间戳
+        });
+
+        // 重新加载记录
+        loadEntries();
+
+        // 清空输入框
+        document.getElementById("title").value = "";
+        document.getElementById("content").value = "";
+        document.getElementById("image").value = "";
+        document.getElementById("video").value = "";
+    }
+
+    // ==================== 页面加载时加载记录 ====================
+    window.onload = loadEntries;
+</script>
+
+</body>
+</html>
