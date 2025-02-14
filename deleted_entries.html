@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>已删除记录</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(to right, #ff7eb3, #9b59b6);
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        header {
+            padding: 40px 0;
+        }
+        h1 {
+            font-size: 3em;
+            font-weight: 600;
+            color: #fff;
+        }
+        .entries {
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+            margin-top: 30px;
+        }
+        .entry {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            position: relative;
+        }
+        .entry p {
+            margin: 5px 0;
+        }
+        .entry img, .entry video {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .timestamp-box {
+            background-color: #ffffff;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #333;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #7a3e8b;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2em;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .button:hover {
+            background-color: #9b59b6;
+        }
+        footer {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8em;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>已删除记录</h1>
+    <p>删除记录可以恢复哦！不过现实可没有后悔药吃</p>
+</header>
+
+<div class="entries" id="deletedEntries">
+    <!-- 这里展示已删除的记录 -->
+</div>
+
+<a href="index.html">
+    <button class="button">返回首页</button>
+</a>
+
+<footer>
+    <p>&copy; 2025 Noora. All Rights Reserved.</p>
+</footer>
+
+<script>
+    // 尝试从 localStorage 加载已删除的记录
+    window.onload = function() {
+        loadDeletedEntries();
+    };
+
+    // 加载所有的已删除记录
+    function loadDeletedEntries() {
+        const deletedEntries = JSON.parse(localStorage.getItem("deletedEntries")) || [];
+        const entriesContainer = document.getElementById("deletedEntries");
+
+        // 清空现有记录
+        entriesContainer.innerHTML = "";
+
+        // 添加已删除的记录
+        deletedEntries.forEach((entry, index) => {
+            const entryElement = document.createElement("div");
+            entryElement.classList.add("entry");
+
+            const titleElement = document.createElement("h3");
+            titleElement.textContent = entry.title;
+
+            const contentElement = document.createElement("p");
+            contentElement.textContent = entry.content;
+
+            const timestampElement = document.createElement("div");
+            timestampElement.classList.add("timestamp-box");
+            timestampElement.textContent = "删除时间: " + entry.timestamp;
+
+            entryElement.appendChild(titleElement);
+            entryElement.appendChild(contentElement);
+            entryElement.appendChild(timestampElement);
+
+            // 如果有图片
+            if (entry.image) {
+                const imageElement = document.createElement("img");
+                imageElement.src = entry.image;
+                entryElement.appendChild(imageElement);
+            }
+
+            // 如果有视频
+            if (entry.video) {
+                const videoElement = document.createElement("video");
+                videoElement.src = entry.video;
+                videoElement.controls = true;
+                entryElement.appendChild(videoElement);
+            }
+
+            // 恢复按钮
+            const restoreButton = document.createElement("button");
+            restoreButton.classList.add("button");
+            restoreButton.textContent = "恢复此记录";
+            restoreButton.onclick = function() {
+                restoreEntry(index);
+            };
+            entryElement.appendChild(restoreButton);
+
+            entriesContainer.appendChild(entryElement);
+        });
+    }
+
+    // 恢复记录到原页面
+    function restoreEntry(index) {
+        const deletedEntries = JSON.parse(localStorage.getItem("deletedEntries"));
+        const entryToRestore = deletedEntries.splice(index, 1)[0]; // 获取要恢复的记录
+
+        // 获取现有的记录
+        let entries = JSON.parse(localStorage.getItem("entries")) || [];
+        entries.push(entryToRestore);
+
+        // 更新记录
+        localStorage.setItem("entries", JSON.stringify(entries));
+
+        // 更新已删除记录
+        localStorage.setItem("deletedEntries", JSON.stringify(deletedEntries));
+
+        // 刷新页面
+        loadDeletedEntries();
+    }
+</script>
+
+</body>
+</html>
