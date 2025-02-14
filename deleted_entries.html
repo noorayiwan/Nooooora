@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>已删除记录</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(to right, #ff7eb3, #9b59b6);
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        header {
+            padding: 40px 0;
+        }
+        h1 {
+            font-size: 3em;
+            font-weight: 600;
+            color: #fff;
+        }
+        .entries {
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+            margin-top: 30px;
+        }
+        .entry {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            position: relative;
+        }
+        .entry p {
+            margin: 5px 0;
+        }
+        .entry img, .entry video {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .timestamp-box {
+            background-color: #ffffff;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #333;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #7a3e8b;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2em;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .button:hover {
+            background-color: #9b59b6;
+        }
+        footer {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8em;
+            color: #ccc;
+        }
+    </style>
+    <!-- 引入 Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+</head>
+<body>
+
+<header>
+    <h1>已删除记录</h1>
+    <p>删除记录可以恢复哦！不过现实可没有后悔药吃</p>
+</header>
+
+<div class="entries" id="deletedEntries">
+    <!-- 这里展示已删除的记录 -->
+</div>
+
+<a href="index.html">
+    <button class="button">返回首页</button>
+</a>
+
+<footer>
+    <p>&copy; 2025 Noora. All Rights Reserved.</p>
+</footer>
+
+<script>
+    // ==================== Firebase 配置 ====================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDGckrealNS8bdVXOuJ5hA5efYHXKyVXDk",
+        authDomain: "yiwan-79475.firebaseapp.com",
+        projectId: "yiwan-79475",
+        storageBucket: "yiwan-79475.appspot.com",
+        messagingSenderId: "821154734829",
+        appId: "1:821154734829:web:3659314fa67d806185e2e4",
+        measurementId: "G-QXGX35ZHW2"
+    };
+
+    // 初始化 Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore(); // 获取 Firestore 实例
+
+    // ==================== 加载已删除记录 ====================
+    async function loadDeletedEntries() {
+        const entriesContainer = document.getElementById("deletedEntries");
+        entriesContainer.innerHTML = ""; // 清空现有内容
+
+        // 从 Firestore 中获取所有已删除记录
+        const querySnapshot = await db.collection("deletedEntries").get();
+        querySnapshot.forEach((doc) => {
+            const entry = doc.data(); // 获取单条记录的数据
+            const entryElement = document.createElement("div");
+            entryElement.classList.add("entry");
+
+            // 创建标题元素
+            const titleElement = document.createElement("h3");
+            titleElement.textContent = entry.title;
+
+            // 创建内容元素
+            const contentElement = document.createElement("p");
+            contentElement.textContent = entry.content;
+
+            // 创建时间戳元素
+            const timestampElement = document.createElement("div");
+            timestampElement.classList.add("timestamp-box");
+            timestampElement.textContent = "删除时间: " + entry.timestamp;
+
+            entryElement.appendChild(titleElement);
+            entryElement.appendChild(contentElement);
+            entryElement.appendChild(timestampElement);
+
+            // 如果有图片
+            if (entry.image) {
+                const imageElement = document.createElement("img");
+                imageElement.src = entry.image;
+                entryElement.appendChild(imageElement);
+            }
+
+            // 如果有视频
+            if (entry.video) {
+                const videoElement = document.createElement("video");
+                videoElement.src = entry.video;
+                videoElement.controls = true;
+                entryElement.appendChild(videoElement);
+            }
+
+            // 恢复按钮
+            const restoreButton = document.createElement("button");
+            restoreButton.classList.add("button");
+            restoreButton.textContent = "恢复此记录";
+            restoreButton.onclick = async function() {
+                await restoreEntry(doc.id, entry); // 恢复记录
+            };
+            entryElement.appendChild(restoreButton);
+
+            entriesContainer.appendChild(entryElement);
+        });
+    }
+
+    // ==================== 恢复记录 ====================
+    async function restoreEntry(docId, entry) {
+        // 将记录恢复到主集合
+        await db.collection("entries").add(entry);
+
+        // 从已删除集合中移除记录
+        await db.collection("deletedEntries").doc(docId).delete();
+
+        // 重新加载已删除记录
+        loadDeletedEntries();
+    }
+
+    // ==================== 页面加载时加载已删除记录 ====================
+    window.onload = loadDeletedEntries;
+</script>
+
+</body>
+</html>
