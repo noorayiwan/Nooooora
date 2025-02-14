@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noora碎碎碎到掉渣的碎碎念</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(to right, #ff7eb3, #9b59b6);
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        header {
+            padding: 40px 0;
+        }
+        h1 {
+            font-size: 3em;
+            font-weight: 600;
+        }
+        .entry-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            width: 80%;
+            max-width: 600px;
+            text-align: left;
+        }
+        .input-field, .text-area {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 1.3em;
+            color: #333;
+            font-family: 'Poppins', sans-serif;
+        }
+        .input-field {
+            height: 40px;
+        }
+        .text-area {
+            height: 150px;
+            resize: none;
+        }
+        .file-input {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            background-color:linear-gradient(to right, #ff7eb3, #9b59b6);
+            cursor: pointer;
+            font-size: 2em;
+            display: inline-block;
+            outline: none;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .file-input:focus, .file-input:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .button {
+            padding: 15px 30px;
+            background-color: #7a3e8b;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.4em;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .button:hover {
+            background-color: #7a3e8b;
+        }
+        .entries {
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+        }
+        .entry {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            position: relative;
+        }
+        .entry p {
+            margin: 5px 0;
+        }
+        .entry img, .entry video {
+            width: 100%;
+            margin-top: 10px;
+        }
+        footer {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8em;
+            color: #ccc;
+        }
+        .delete-btn {
+            font-size: 1.5em;
+            background: transparent;
+            border: none;
+            color: #ff5e5e;
+            cursor: pointer;
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1> Noora碎碎碎到掉渣的碎碎念 </h1>
+    <p>什么东西都随便记录吧，故事、情绪、音乐、电影🎬、书籍📚</p>
+</header>
+
+<div class="entry-container">
+    <h2>今天说点啥呢:</h2>
+    <input class="input-field" type="text" id="title" placeholder="Title不喜欢想标题" />
+    <textarea class="text-area" id="content" placeholder="看着点写吧...说也行..."></textarea>
+    
+    <label for="image" class="file-input">✨</label>
+    <input class="file-input" type="file" id="image" accept="image/*" style="display: none;" />
+    
+    <label for="video" class="file-input">🧚‍♀️</label>
+    <input class="file-input" type="file" id="video" accept="video/*" style="display: none;" />
+    
+    <button class="button" onclick="saveEntry()">一锤定音</button>
+</div>
+
+<div class="entries" id="entries">
+    <!-- 记录的内容会显示在这里 -->
+</div>
+
+<a href="index.html">
+    <button class="button">返回首页</button>
+</a>
+
+<footer>
+    <p>&copy; 2025 Noora. All Rights Reserved.</p>
+</footer>
+
+<script>
+    // 尝试从 localStorage 加载以前的记录
+    window.onload = function() {
+        loadEntries();
+    };
+
+    // 保存记录到 localStorage
+    function saveEntry() {
+        const title = document.getElementById("title").value;
+        const content = document.getElementById("content").value;
+        const image = document.getElementById("image").files[0];
+        const video = document.getElementById("video").files[0];
+
+        if (title === "" || content === "") {
+            alert("不写东西可什么也记录不下来，你不写我怎么知道你心里藏点什么");
+            return;
+        }
+
+        const entry = {
+            title: title,
+            content: content,
+            image: image ? URL.createObjectURL(image) : null,
+            video: video ? URL.createObjectURL(video) : null,
+            timestamp: new Date().toLocaleString()  // 添加时间戳
+        };
+
+        // 获取现有的记录
+        let entries = JSON.parse(localStorage.getItem("entries")) || [];
+        entries.push(entry);
+
+        // 保存到 localStorage
+        localStorage.setItem("entries", JSON.stringify(entries));
+
+        // 清空输入框
+        document.getElementById("title").value = "";
+        document.getElementById("content").value = "";
+        document.getElementById("image").value = "";
+        document.getElementById("video").value = "";
+
+        // 更新记录显示
+        loadEntries();
+    }
+
+    // 加载所有的记录
+    function loadEntries() {
+        const entries = JSON.parse(localStorage.getItem("entries")) || [];
+        const entriesContainer = document.getElementById("entries");
+
+        // 清空现有记录
+        entriesContainer.innerHTML = "";
+
+        // 添加新的记录
+        entries.forEach((entry, index) => {
+            const entryElement = document.createElement("div");
+            entryElement.classList.add("entry");
+
+            const titleElement = document.createElement("h3");
+            titleElement.textContent = entry.title;
+
+            const contentElement = document.createElement("p");
+            contentElement.textContent = entry.content;
+
+            const timestampElement = document.createElement("p");
+            timestampElement.textContent = "时间: " + entry.timestamp;
+            timestampElement.style.fontSize = "0.9em";
+            timestampElement.style.color = "#ccc";
+
+            entryElement.appendChild(titleElement);
+            entryElement.appendChild(contentElement);
+            entryElement.appendChild(timestampElement);
+
+            // 如果有图片
+            if (entry.image) {
+                const imageElement = document.createElement("img");
+                imageElement.src = entry.image;
+                entryElement.appendChild(imageElement);
+            }
+
+            // 如果有视频
+            if (entry.video) {
+                const videoElement = document.createElement("video");
+                videoElement.src = entry.video;
+                videoElement.controls = true;
+                entryElement.appendChild(videoElement);
+            }
+
+            // 删除按钮
+            const deleteButton = document.createElement("button");
+            deleteButton.classList.add("delete-btn");
+            deleteButton.textContent = "🚮";
+            deleteButton.onclick = function() {
+                deleteEntry(index);
+            };
+            entryElement.appendChild(deleteButton);
+
+            entriesContainer.appendChild(entryElement);
+        });
+    }
+
+    // 删除记录
+    function deleteEntry(index) {
+        let entries = JSON.parse(localStorage.getItem("entries"));
+        entries.splice(index, 1);  // 删除记录
+        localStorage.setItem("entries", JSON.stringify(entries));  // 更新 localStorage
+        loadEntries();  // 重新加载记录
+    }
+</script>
+
+</body>
+</html>
+
