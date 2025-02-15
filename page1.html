@@ -178,10 +178,35 @@
 </footer>
 
 <script>
-    // 尝试从 localStorage 加载以前的记录
+    // WebSocket 连接部分
+    let socket;
+    
     window.onload = function() {
         loadEntries();
+        connectWebSocket();  // 初始化 WebSocket 连接
     };
+
+    // 创建 WebSocket 连接
+    function connectWebSocket() {
+        socket = new WebSocket('ws://localhost:8080');  // 请替换成你自己的 WebSocket 服务器地址
+
+        socket.onopen = function() {
+            console.log('WebSocket connection established');
+        };
+
+        socket.onmessage = function(event) {
+            console.log('Message from server: ', event.data);
+            // 你可以在这里处理从服务器发送来的消息
+        };
+
+        socket.onerror = function(error) {
+            console.error('WebSocket error: ', error);
+        };
+
+        socket.onclose = function() {
+            console.log('WebSocket connection closed');
+        };
+    }
 
     // 保存记录到 localStorage
     function saveEntry() {
@@ -218,6 +243,11 @@
 
         // 更新记录显示
         loadEntries();
+
+        // 向服务器发送记录
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify(entry));
+        }
     }
 
     // 加载所有的记录
